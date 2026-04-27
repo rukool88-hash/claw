@@ -11,10 +11,7 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.1,
       "position": [240, 300],
-      "webhookId": "wf1-tg-voice",
-      "credentials": {
-        "telegramApi": { "id": "REPLACE_ME_TELEGRAM_CRED_ID", "name": "Telegram" }
-      }
+      "webhookId": "wf1-tg-voice"
     },
     {
       "parameters": {
@@ -94,16 +91,31 @@
     },
     {
       "parameters": {
+        "operation": "toText",
+        "sourceProperty": "markdown",
+        "options": {
+          "fileName": "transcript.md",
+          "mimeType": "text/markdown"
+        }
+      },
+      "id": "to-binary",
+      "name": "Markdown To Binary",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [1380, 220]
+    },
+    {
+      "parameters": {
         "operation": "write",
-        "fileName": "={{ $json.fileName }}",
-        "dataPropertyName": "markdown",
-        "options": { "encoding": "utf8", "append": false }
+        "fileName": "={{ $('Build Markdown').item.json.fileName }}",
+        "dataPropertyName": "data",
+        "options": {}
       },
       "id": "write-md",
       "name": "Write Markdown",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [1420, 220]
+      "position": [1580, 220]
     },
     {
       "parameters": {
@@ -115,10 +127,7 @@
       "name": "Telegram Ack",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1660, 220],
-      "credentials": {
-        "telegramApi": { "id": "REPLACE_ME_TELEGRAM_CRED_ID", "name": "Telegram" }
-      }
+      "position": [1800, 220]
     }
   ],
   "connections": {
@@ -126,10 +135,9 @@
     "Has Voice?": { "main": [[{ "node": "Write Audio", "type": "main", "index": 0 }], []] },
     "Write Audio": { "main": [[{ "node": "Local Whisper", "type": "main", "index": 0 }]] },
     "Local Whisper": { "main": [[{ "node": "Build Markdown", "type": "main", "index": 0 }]] },
-    "Build Markdown": { "main": [[{ "node": "Write Markdown", "type": "main", "index": 0 }]] },
+    "Build Markdown": { "main": [[{ "node": "Markdown To Binary", "type": "main", "index": 0 }]] },
+    "Markdown To Binary": { "main": [[{ "node": "Write Markdown", "type": "main", "index": 0 }]] },
     "Write Markdown": { "main": [[{ "node": "Telegram Ack", "type": "main", "index": 0 }]] }
   },
-  "active": false,
-  "settings": { "executionOrder": "v1" },
-  "tags": [{ "name": "brain-vault" }]
+  "settings": { "executionOrder": "v1" }
 }

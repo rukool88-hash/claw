@@ -5,6 +5,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "rss-ingest",
+        "responseMode": "responseNode",
         "options": {}
       },
       "id": "wh",
@@ -42,16 +43,31 @@
     },
     {
       "parameters": {
+        "operation": "toText",
+        "sourceProperty": "line",
+        "options": {
+          "fileName": "rss.md",
+          "mimeType": "text/markdown"
+        }
+      },
+      "id": "to-binary",
+      "name": "Line To Binary",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
         "operation": "write",
-        "fileName": "={{ $json.filePath }}",
-        "dataPropertyName": "line",
-        "options": { "encoding": "utf8", "append": true }
+        "fileName": "={{ $('Build Line').item.json.filePath }}",
+        "dataPropertyName": "data",
+        "options": { "append": true }
       },
       "id": "append",
       "name": "Append to Daily File",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [700, 300]
+      "position": [860, 300]
     },
     {
       "parameters": {
@@ -62,15 +78,14 @@
       "name": "Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [940, 300]
+      "position": [1080, 300]
     }
   ],
   "connections": {
     "RSS Webhook": { "main": [[{ "node": "Build Line", "type": "main", "index": 0 }]] },
-    "Build Line": { "main": [[{ "node": "Append to Daily File", "type": "main", "index": 0 }]] },
+    "Build Line": { "main": [[{ "node": "Line To Binary", "type": "main", "index": 0 }]] },
+    "Line To Binary": { "main": [[{ "node": "Append to Daily File", "type": "main", "index": 0 }]] },
     "Append to Daily File": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
   },
-  "active": false,
-  "settings": { "executionOrder": "v1" },
-  "tags": [{ "name": "brain-vault" }]
+  "settings": { "executionOrder": "v1" }
 }
