@@ -1,0 +1,22 @@
+{
+  "$schema": "https://qwen-code.dev/schemas/settings.json",
+  "tools": {
+    "writeAllow": [
+      "./inbox/**",
+      "./knowledge/**",
+      "./projects/**",
+      "./output/**"
+    ],
+    "writeDeny": [
+      "./articles/**",
+      "./fleeting-notes/**",
+      "./.claude/**",
+      "./.qwen/**",
+      "./.obsidian/**",
+      "./.git/**"
+    ]
+  },
+  "context": {
+    "include": ["QWEN.md"]
+  }
+}

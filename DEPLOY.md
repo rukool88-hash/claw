@@ -69,54 +69,62 @@ gh repo create brain-vault --private --source . --remote origin --push
 
 ---
 
-## 2. 第四层：Claude Code AI 引擎（接智谱 GLM-4.6）
+## 2. 第四层：Qwen Code AI 引擎（接智谱 GLM-4.6）
 
-### 2.1 安装 Claude Code CLI
+> 本项目不使用 Claude Code。选用阿里开源的 **Qwen Code**（同样本地 CLI、读 [QWEN.md](QWEN.md)、支持 [.qwen/commands/](.qwen/commands/) 自定义 Slash 命令）。后端走智谱提供的 OpenAI 兼容端点。
+
+### 2.1 安装 Qwen Code CLI
 ```powershell
-npm install -g @anthropic-ai/claude-code
+npm install -g @qwen-code/qwen-code
+qwen --version
+```
+如果 npm 报 “禁止运行脚本”，先执行一次：
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
 ```
 
 ### 2.2 配置环境变量指向智谱兼容端点
-智谱 BigModel 提供与 Anthropic 完全兼容的 `/api/anthropic` 端点，Claude Code 只需切换 `ANTHROPIC_BASE_URL` 即可。
+Qwen Code 读以下 3 个 OpenAI 协议变量。
 
-**永久写入用户环境变量**（普通 PowerShell 即可，无需管理员）：
+**推荐：运行脚本**（并会写入用户作用域）：
 ```powershell
-[Environment]::SetEnvironmentVariable("ANTHROPIC_BASE_URL", "https://open.bigmodel.cn/api/anthropic", "User")
-[Environment]::SetEnvironmentVariable("ANTHROPIC_AUTH_TOKEN", "<你的智谱-API-Key>", "User")
-[Environment]::SetEnvironmentVariable("ANTHROPIC_MODEL", "glm-4.6", "User")
-[Environment]::SetEnvironmentVariable("ANTHROPIC_DEFAULT_HAIKU_MODEL", "glm-4.5-air", "User")
-[Environment]::SetEnvironmentVariable("ANTHROPIC_SMALL_FAST_MODEL", "glm-4.5-air", "User")
+cd D:\VScode\机器人
+.\.qwen\setup-zhipu.ps1 -ApiKey "<你的智谱-API-Key>"
 ```
 
-或者运行脚本（首次需放开执行策略）：
+或手动写：
 ```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
-.\.claude\setup-zhipu.ps1 -ApiKey "<你的智谱-API-Key>"
+[Environment]::SetEnvironmentVariable("OPENAI_API_KEY",  "<你的智谱-API-Key>", "User")
+[Environment]::SetEnvironmentVariable("OPENAI_BASE_URL", "https://open.bigmodel.cn/api/paas/v4", "User")
+[Environment]::SetEnvironmentVariable("OPENAI_MODEL",    "glm-4.6", "User")
 ```
 
-**完成后必须关闭并重新打开 PowerShell**，否则 `claude` 看不到新变量。
+**写完后必须关闭并重新打开 PowerShell**。
 
-> 备注：环境变量优先级高于 `claude` 自身配置，**不要** 在 `claude` 里再走 Anthropic 登录流程，直接跳过即可。
+> 备注：之前设的 ANTHROPIC_* 变量不会干扰 Qwen Code，可保留也可删除。如需删除：
+> ```powershell
+> Remove-Item Env:ANTHROPIC_BASE_URL -ErrorAction SilentlyContinue
+> [Environment]::SetEnvironmentVariable("ANTHROPIC_AUTH_TOKEN", $null, "User")
+> ```
 
 ### 2.3 在 Vault 根目录启动
 ```powershell
 cd D:\VScode\机器人
-claude --dangerously-skip-permissions   # 首次跳过权限确认；后续可去掉此参数
+qwen
 ```
-
-它会自动加载 [CLAUDE.md](CLAUDE.md) 和 [.claude/settings.json](.claude/settings.json)。
+Qwen Code 会自动加载 [QWEN.md](QWEN.md)（内容与 CLAUDE.md 一致）与 [.qwen/settings.json](.qwen/settings.json)。
 
 ### 2.4 验证
-- `claude` 启动后输入 `/` 能补全 `/maintain` `/ideate` `/debate` `/draft` 4 个命令。
-- 输入 `你好，列出本仓库的 5 大目录` 看是否有响应（说明 GLM-4.6 通了）。
+- 输入 `/` 能看到 4 个自定义命令 `/maintain` `/ideate` `/debate` `/draft`。
+- 输入 `你好，请读本仓库的 QWEN.md 后告诉我 5 大目录是什么` 看是否有响应。
 
-> 如果回复 `401/403`：检查 ANTHROPIC_AUTH_TOKEN；
-> 如果 `model not found`：把 `ANTHROPIC_MODEL` 换成你套餐内允许的名字（如 `glm-4.6`、`glm-4-plus`）。
+> 401/403 → 检查 OPENAI_API_KEY（如果报 “invalid bearer”，查智谱后台 Key 是否被禁）。
+> 404 / model not found → 套餐未包含该模型，在智谱控制台 “模型中心” 查可用名。
 
 ### ✅ 验证
 - 在 [inbox/transcripts/](inbox/transcripts/) 放一个测试 `.md`（任意一段话）。
-- 运行 `/maintain --dry-run`，应列出该文件并给出处理计划。
-- 运行 `/maintain`，应在 [knowledge/](knowledge/) 出现新卡片，原文件移到 `inbox/transcripts/_processed/`。
+- 在 qwen 交互里运行 `/maintain --dry-run` 应列出该文件与计划。
+- 运行 `/maintain` 应在 [knowledge/](knowledge/) 出现新卡片，原文件移到 `inbox/transcripts/_processed/`。
 
 ---
 
@@ -189,10 +197,10 @@ docker compose logs -f n8n   # 看到 "Editor is now accessible" 即可 Ctrl+C
    - **方案 A（推荐）**：用 Windows 任务计划程序直接跳过 n8n：
      ```powershell
      # 一次性创建任务（管理员 PowerShell）
-     $cmd = 'cd D:\VScode\机器人; claude --dangerously-skip-permissions -p "/maintain" >> D:\VScode\机器人\.claude\maintain.log 2>&1'
+     $cmd = 'cd D:\VScode\机器人; qwen -p "/maintain" >> D:\VScode\机器人\.qwen\maintain.log 2>&1'
      schtasks /Create /SC DAILY /ST 22:00 /TN "brain-vault-maintain" /TR "powershell -NoProfile -Command ""$cmd""" /F
      ```
-   - **方案 B**：仍由 n8n Schedule 起始 → webhook 回调宿主机上一个小服务起 `claude -p "/maintain"`。
+   - **方案 B**：仍由 n8n Schedule 起始 → webhook 回调宿主机上一个小服务起 `qwen -p "/maintain"`。
 3. （可选）**失败 Telegram 通知**。
 
 ### ✅ 验证
@@ -248,7 +256,7 @@ curl -X POST http://localhost:9000/transcribe `
 
 - [ ] `docker ps` 看到 `n8n` 运行
 - [ ] `curl http://localhost:9000/health` 返回 ok
-- [ ] `claude --version` 成功
+- [ ] `qwen --version` 成功
 - [ ] Obsidian 改文件 → 10 分钟内 GitHub 出现 commit
 - [ ] Telegram 发语音 → `inbox/transcripts/` 出现 .md
 - [ ] 放 ≥10 分钟 mp3 → faster-whisper 正常转写（看 n8n 日志）
@@ -266,9 +274,9 @@ curl -X POST http://localhost:9000/transcribe `
 | n8n 写文件提示权限 | Docker Desktop → Settings → Resources → File sharing 勾选 `D:\VScode\机器人` |
 | `host.docker.internal` 不通 | 已在 compose 中加 `extra_hosts`；若仍不行用宿主机局域网 IP |
 | Whisper 报 CUDA 错 | 设 `WHISPER_DEVICE=cpu`，或装 CUDA 12 + cuDNN 9 |
-| Claude Code 提示 401/403 | `ANTHROPIC_AUTH_TOKEN` 未生效；关闭重开 PowerShell、`echo $env:ANTHROPIC_AUTH_TOKEN` 验证 |
-| Claude Code 提示 `model not found` | 报错里的模型名不在智谱套餐内，调 `ANTHROPIC_MODEL`/`ANTHROPIC_SMALL_FAST_MODEL` 为套餐允许名（如 `glm-4.6` / `glm-4.5-air`） |
-| Claude Code 命令找不到 4 个 slash | 检查工作目录是否 = Vault 根；`.claude/commands/*.md` 是否有 `description` frontmatter |
+| Qwen Code 提示 401/403 | `OPENAI_API_KEY` 未生效；关闭重开 PowerShell、`echo $env:OPENAI_API_KEY` 验证 |
+| Qwen Code 提示 `model not found` | `OPENAI_MODEL` 不在智谱套餐内，换成 `glm-4.6` / `glm-4-plus` |
+| Qwen Code 命令找不到 4 个 slash | 检查工作目录是否 = Vault 根；`.qwen/commands/*.md` 是否有 `description` frontmatter |
 | Obsidian Git push 失败 | 在终端 `cd D:\VScode\机器人; git push` 看具体错误，多半是 SSH key 未配 |
 | 转写中文识别成繁体 | WF1 OpenAI 节点 prompt 加 "请使用简体中文输出"；本地 server 已传 `language=zh` |
 

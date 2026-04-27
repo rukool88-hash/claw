@@ -1,3 +1,6 @@
+---
+github_repo: rukool88-hash|https://github.com/rukool88-hash/claw
+---
 # Index — 各目录导航
 
 | 目录 | 用途 | AI 是否写入 |
