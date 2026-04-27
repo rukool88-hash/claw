@@ -1,0 +1,40 @@
+{
+  "name": "WF4 - Daily Maintain Notify (optional)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 22 * * *" }
+          ]
+        }
+      },
+      "id": "cron",
+      "name": "Daily 22:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "REPLACE_ME_YOUR_CHAT_ID",
+        "text": "=⏰ 22:00 brain-vault /maintain 应已由 schtasks 触发，记得查看 .qwen/maintain.log",
+        "additionalFields": {}
+      },
+      "id": "tg",
+      "name": "Telegram Notify",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [460, 300],
+      "credentials": {
+        "telegramApi": { "id": "REPLACE_ME_TELEGRAM_CRED_ID", "name": "Telegram" }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 22:00": { "main": [[{ "node": "Telegram Notify", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "brain-vault" }]
+}

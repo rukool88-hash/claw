@@ -1,0 +1,76 @@
+{
+  "name": "WF2 - RSS to Vault",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rss-ingest",
+        "options": {}
+      },
+      "id": "wh",
+      "name": "RSS Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "rss-ingest"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "line",
+              "name": "line",
+              "value": "=- [{{ $json.body.title || $json.body.subject || 'Untitled' }}]({{ $json.body.url || $json.body.link || '#' }}) — {{ ($json.body.summary || $json.body.description || '').toString().slice(0,200) }}\n",
+              "type": "string"
+            },
+            {
+              "id": "fp",
+              "name": "filePath",
+              "value": "=/vault/inbox/rss/{{ $now.format('yyyy-MM-dd') }}.md",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "build-line",
+      "name": "Build Line",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.filePath }}",
+        "dataPropertyName": "line",
+        "options": { "encoding": "utf8", "append": true }
+      },
+      "id": "append",
+      "name": "Append to Daily File",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "ok"
+      },
+      "id": "resp",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [940, 300]
+    }
+  ],
+  "connections": {
+    "RSS Webhook": { "main": [[{ "node": "Build Line", "type": "main", "index": 0 }]] },
+    "Build Line": { "main": [[{ "node": "Append to Daily File", "type": "main", "index": 0 }]] },
+    "Append to Daily File": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "brain-vault" }]
+}

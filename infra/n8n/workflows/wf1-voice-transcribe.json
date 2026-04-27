@@ -1,0 +1,135 @@
+{
+  "name": "WF1 - Voice Transcribe",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": { "download": true }
+      },
+      "id": "tg-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "webhookId": "wf1-tg-voice",
+      "credentials": {
+        "telegramApi": { "id": "REPLACE_ME_TELEGRAM_CRED_ID", "name": "Telegram" }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "voice-exists",
+              "leftValue": "={{ $json.message.voice }}",
+              "rightValue": "",
+              "operator": { "type": "object", "operation": "exists", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-voice",
+      "name": "Has Voice?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/vault/inbox/audio/{{ $now.format('yyyyMMdd-HHmmss') }}-{{ $('Telegram Trigger').item.json.message.message_id }}.ogg",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "write-audio",
+      "name": "Write Audio",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [700, 220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:9000/transcribe",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"path\": \"{{ $('Write Audio').item.json.fileName }}\",\n  \"language\": \"zh\"\n}",
+        "options": { "timeout": 600000 }
+      },
+      "id": "http-whisper",
+      "name": "Local Whisper",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [940, 220]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "md",
+              "name": "markdown",
+              "value": "=---\ncreated: {{ $now.toISO() }}\ntype: transcript\nsource: telegram\nduration: {{ $('Telegram Trigger').item.json.message.voice.duration }}\n---\n\n# {{ $now.format('yyyy-MM-dd HH:mm') }} 录音\n\n{{ $json.text }}\n",
+              "type": "string"
+            },
+            {
+              "id": "fname",
+              "name": "fileName",
+              "value": "=/vault/inbox/transcripts/{{ $now.format('yyyyMMdd-HHmm') }}-{{ $('Telegram Trigger').item.json.message.message_id }}.md",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "build-md",
+      "name": "Build Markdown",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1180, 220]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.fileName }}",
+        "dataPropertyName": "markdown",
+        "options": { "encoding": "utf8", "append": false }
+      },
+      "id": "write-md",
+      "name": "Write Markdown",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1420, 220]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=✅ 已转写并入库：{{ $('Build Markdown').item.json.fileName.split('/').pop() }}",
+        "additionalFields": {}
+      },
+      "id": "tg-ack",
+      "name": "Telegram Ack",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1660, 220],
+      "credentials": {
+        "telegramApi": { "id": "REPLACE_ME_TELEGRAM_CRED_ID", "name": "Telegram" }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": { "main": [[{ "node": "Has Voice?", "type": "main", "index": 0 }]] },
+    "Has Voice?": { "main": [[{ "node": "Write Audio", "type": "main", "index": 0 }], []] },
+    "Write Audio": { "main": [[{ "node": "Local Whisper", "type": "main", "index": 0 }]] },
+    "Local Whisper": { "main": [[{ "node": "Build Markdown", "type": "main", "index": 0 }]] },
+    "Build Markdown": { "main": [[{ "node": "Write Markdown", "type": "main", "index": 0 }]] },
+    "Write Markdown": { "main": [[{ "node": "Telegram Ack", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "brain-vault" }]
+}

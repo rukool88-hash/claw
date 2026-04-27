@@ -12,8 +12,8 @@ if (-not (Test-Path .\.venv)) {
 }
 
 $env:VAULT_HOST_ROOT = (Resolve-Path "$here\..\..").Path
-$env:WHISPER_MODEL = $env:WHISPER_MODEL ?? "large-v3"
-$env:WHISPER_DEVICE = $env:WHISPER_DEVICE ?? "auto"
+if (-not $env:WHISPER_MODEL)  { $env:WHISPER_MODEL  = "large-v3" }
+if (-not $env:WHISPER_DEVICE) { $env:WHISPER_DEVICE = "auto" }
 
 Write-Host "[whisper] VAULT_HOST_ROOT=$env:VAULT_HOST_ROOT"
 .\.venv\Scripts\uvicorn.exe server:app --host 0.0.0.0 --port 9000

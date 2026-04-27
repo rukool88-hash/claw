@@ -17,9 +17,6 @@
     ]
   },
   "context": {
-    "include": [
-      "QWEN.md"
-    ]
-  },
-  "$version": 3
+    "include": ["QWEN.md"]
+  }
 }
