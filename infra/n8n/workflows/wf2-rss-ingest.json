@@ -17,74 +17,28 @@
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "line",
-              "name": "line",
-              "value": "=- [{{ $json.body.title || $json.body.subject || 'Untitled' }}]({{ $json.body.url || $json.body.link || '#' }}) — {{ ($json.body.summary || $json.body.description || '').toString().slice(0,200) }}\n",
-              "type": "string"
-            },
-            {
-              "id": "fp",
-              "name": "filePath",
-              "value": "=/vault/inbox/rss/{{ $now.format('yyyy-MM-dd') }}.md",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\nconst body = $input.first().json.body || $input.first().json;\nconst title = body.title || body.subject || 'Untitled';\nconst url = body.url || body.link || '#';\nconst summary = (body.summary || body.description || '').toString().slice(0, 200);\nconst d = new Date();\nconst yyyy = d.getFullYear();\nconst mm = String(d.getMonth() + 1).padStart(2, '0');\nconst dd = String(d.getDate()).padStart(2, '0');\nconst filePath = `/vault/inbox/rss/${yyyy}-${mm}-${dd}.md`;\nconst hh = String(d.getHours()).padStart(2, '0');\nconst mi = String(d.getMinutes()).padStart(2, '0');\nconst line = `- ${hh}:${mi} [${title}](${url}) — ${summary}\\n`;\nfs.mkdirSync(path.dirname(filePath), { recursive: true });\nif (!fs.existsSync(filePath)) {\n  const header = `---\\ncreated: ${yyyy}-${mm}-${dd}\\ntype: rss-digest\\n---\\n\\n# ${yyyy}-${mm}-${dd} RSS\\n\\n`;\n  fs.writeFileSync(filePath, header, 'utf8');\n}\nfs.appendFileSync(filePath, line, 'utf8');\nreturn [{ json: { ok: true, written: filePath, title } }];"
       },
-      "id": "build-line",
-      "name": "Build Line",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "id": "append",
+      "name": "Append to Daily File",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [460, 300]
     },
     {
       "parameters": {
-        "operation": "toText",
-        "sourceProperty": "line",
-        "options": {
-          "fileName": "rss.md",
-          "mimeType": "text/markdown"
-        }
-      },
-      "id": "to-binary",
-      "name": "Line To Binary",
-      "type": "n8n-nodes-base.convertToFile",
-      "typeVersion": 1.1,
-      "position": [660, 300]
-    },
-    {
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Build Line').item.json.filePath }}",
-        "dataPropertyName": "data",
-        "options": { "append": true }
-      },
-      "id": "append",
-      "name": "Append to Daily File",
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [860, 300]
-    },
-    {
-      "parameters": {
         "respondWith": "text",
-        "responseBody": "ok"
+        "responseBody": "=ok: {{ $json.written }}"
       },
       "id": "resp",
       "name": "Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1080, 300]
+      "position": [680, 300]
     }
   ],
   "connections": {
-    "RSS Webhook": { "main": [[{ "node": "Build Line", "type": "main", "index": 0 }]] },
-    "Build Line": { "main": [[{ "node": "Line To Binary", "type": "main", "index": 0 }]] },
-    "Line To Binary": { "main": [[{ "node": "Append to Daily File", "type": "main", "index": 0 }]] },
+    "RSS Webhook": { "main": [[{ "node": "Append to Daily File", "type": "main", "index": 0 }]] },
     "Append to Daily File": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" }

@@ -17,7 +17,7 @@
     },
     {
       "parameters": {
-        "chatId": "REPLACE_ME_YOUR_CHAT_ID",
+        "chatId": "1767462117",
         "text": "=⏰ 22:00 brain-vault /maintain 应已由 schtasks 触发，记得查看 .qwen/maintain.log",
         "additionalFields": {}
       },
