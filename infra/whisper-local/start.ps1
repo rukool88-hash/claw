@@ -14,6 +14,9 @@ if (-not (Test-Path .\.venv)) {
 $env:VAULT_HOST_ROOT = (Resolve-Path "$here\..\..").Path
 if (-not $env:WHISPER_MODEL)  { $env:WHISPER_MODEL  = "large-v3" }
 if (-not $env:WHISPER_DEVICE) { $env:WHISPER_DEVICE = "auto" }
+# HuggingFace 在国内访问受限，使用镜像
+if (-not $env:HF_ENDPOINT)    { $env:HF_ENDPOINT    = "https://hf-mirror.com" }
+if (-not $env:HF_HUB_ENABLE_HF_TRANSFER) { $env:HF_HUB_ENABLE_HF_TRANSFER = "0" }
 
 Write-Host "[whisper] VAULT_HOST_ROOT=$env:VAULT_HOST_ROOT"
 .\.venv\Scripts\uvicorn.exe server:app --host 0.0.0.0 --port 9000
