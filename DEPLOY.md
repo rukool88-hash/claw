@@ -79,16 +79,22 @@ npm install -g @anthropic-ai/claude-code
 ### 2.2 配置环境变量指向智谱兼容端点
 智谱 BigModel 提供与 Anthropic 完全兼容的 `/api/anthropic` 端点，Claude Code 只需切换 `ANTHROPIC_BASE_URL` 即可。
 
-**永久写入用户环境变量**（PowerShell 管理员）：
+**永久写入用户环境变量**（普通 PowerShell 即可，无需管理员）：
 ```powershell
 [Environment]::SetEnvironmentVariable("ANTHROPIC_BASE_URL", "https://open.bigmodel.cn/api/anthropic", "User")
 [Environment]::SetEnvironmentVariable("ANTHROPIC_AUTH_TOKEN", "<你的智谱-API-Key>", "User")
-# 模型映射（智谱 Coding Plan 推荐）
 [Environment]::SetEnvironmentVariable("ANTHROPIC_MODEL", "glm-4.6", "User")
 [Environment]::SetEnvironmentVariable("ANTHROPIC_DEFAULT_HAIKU_MODEL", "glm-4.5-air", "User")
 [Environment]::SetEnvironmentVariable("ANTHROPIC_SMALL_FAST_MODEL", "glm-4.5-air", "User")
 ```
-关闭并重开 PowerShell 让变量生效。
+
+或者运行脚本（首次需放开执行策略）：
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
+.\.claude\setup-zhipu.ps1 -ApiKey "<你的智谱-API-Key>"
+```
+
+**完成后必须关闭并重新打开 PowerShell**，否则 `claude` 看不到新变量。
 
 > 备注：环境变量优先级高于 `claude` 自身配置，**不要** 在 `claude` 里再走 Anthropic 登录流程，直接跳过即可。
 
