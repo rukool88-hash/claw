@@ -27,12 +27,14 @@ docker --version
 
 > 安装 Docker Desktop 后请重启并启用 **WSL2 后端**。
 
-### API Key 准备
-- [ ] Anthropic API Key（<https://console.anthropic.com>）
-- [ ] OpenAI API Key（<https://platform.openai.com>）
+### API Key 准备（中国大陆方案）
+> Anthropic / OpenAI 在中国大陆无法直接访问，因此用以下兼容端替代：
+- [ ] **智谱 BigModel API Key**（<https://open.bigmodel.cn>）→ 充值后开通 **GLM Coding Plan**，会得到一个 Anthropic 兼容端点
 - [ ] Telegram Bot Token（在 @BotFather 创建）
 - [ ] Readwise / Inoreader 账号（可选，先跳过）
-- [ ] GitHub 账号 + 已 `gh auth login`
+- [ ] GitHub 账号（可选 `gh auth login`，本仓库已推送）
+
+> 语音转写不再使用 OpenAI Whisper API，全部走 **本地 faster-whisper**（见第 5 节）。
 
 ---
 
@@ -67,20 +69,43 @@ gh repo create brain-vault --private --source . --remote origin --push
 
 ---
 
-## 2. 第四层：Claude Code AI 引擎
+## 2. 第四层：Claude Code AI 引擎（接智谱 GLM-4.6）
 
+### 2.1 安装 Claude Code CLI
 ```powershell
-# 全局安装
 npm install -g @anthropic-ai/claude-code
-
-# 在 Vault 根目录初始化
-cd D:\VScode\机器人
-claude   # 第一次会引导登录 Anthropic 账号
 ```
 
-进入 Claude Code 后：
-1. 它会自动加载 [CLAUDE.md](CLAUDE.md) 和 [.claude/settings.json](.claude/settings.json)。
-2. 验证 4 个 Slash 命令：在 prompt 里输入 `/` 应能补全 `/maintain` `/ideate` `/debate` `/draft`。
+### 2.2 配置环境变量指向智谱兼容端点
+智谱 BigModel 提供与 Anthropic 完全兼容的 `/api/anthropic` 端点，Claude Code 只需切换 `ANTHROPIC_BASE_URL` 即可。
+
+**永久写入用户环境变量**（PowerShell 管理员）：
+```powershell
+[Environment]::SetEnvironmentVariable("ANTHROPIC_BASE_URL", "https://open.bigmodel.cn/api/anthropic", "User")
+[Environment]::SetEnvironmentVariable("ANTHROPIC_AUTH_TOKEN", "<你的智谱-API-Key>", "User")
+# 模型映射（智谱 Coding Plan 推荐）
+[Environment]::SetEnvironmentVariable("ANTHROPIC_MODEL", "glm-4.6", "User")
+[Environment]::SetEnvironmentVariable("ANTHROPIC_DEFAULT_HAIKU_MODEL", "glm-4.5-air", "User")
+[Environment]::SetEnvironmentVariable("ANTHROPIC_SMALL_FAST_MODEL", "glm-4.5-air", "User")
+```
+关闭并重开 PowerShell 让变量生效。
+
+> 备注：环境变量优先级高于 `claude` 自身配置，**不要** 在 `claude` 里再走 Anthropic 登录流程，直接跳过即可。
+
+### 2.3 在 Vault 根目录启动
+```powershell
+cd D:\VScode\机器人
+claude --dangerously-skip-permissions   # 首次跳过权限确认；后续可去掉此参数
+```
+
+它会自动加载 [CLAUDE.md](CLAUDE.md) 和 [.claude/settings.json](.claude/settings.json)。
+
+### 2.4 验证
+- `claude` 启动后输入 `/` 能补全 `/maintain` `/ideate` `/debate` `/draft` 4 个命令。
+- 输入 `你好，列出本仓库的 5 大目录` 看是否有响应（说明 GLM-4.6 通了）。
+
+> 如果回复 `401/403`：检查 ANTHROPIC_AUTH_TOKEN；
+> 如果 `model not found`：把 `ANTHROPIC_MODEL` 换成你套餐内允许的名字（如 `glm-4.6`、`glm-4-plus`）。
 
 ### ✅ 验证
 - 在 [inbox/transcripts/](inbox/transcripts/) 放一个测试 `.md`（任意一段话）。
@@ -103,10 +128,11 @@ docker compose logs -f n8n   # 看到 "Editor is now accessible" 即可 Ctrl+C
 
 ### 配置凭证（Credentials）
 在 n8n 左下角 → Credentials → New：
-- **OpenAI**：粘贴 OpenAI Key
-- **Anthropic**：粘贴 Anthropic Key
+- **HTTP Header Auth**（命名 `Zhipu`）：Header 名 `Authorization`，值 `Bearer <你的智谱-API-Key>`（用于在 n8n 里调 GLM）
 - **Telegram**：粘贴 Bot Token
 - （后续按需）Readwise / Inoreader / IMAP
+
+> 不需要配置 OpenAI / Anthropic 凭证。
 
 ### ✅ 验证
 - n8n 中创建一个 Manual Trigger → Write Binary File 节点 → 路径 `/vault/inbox/transcripts/test-from-n8n.md` → 内容随意 → Execute。
@@ -118,14 +144,14 @@ docker compose logs -f n8n   # 看到 "Editor is now accessible" 即可 Ctrl+C
 
 > 每个工作流创建完后导出 JSON 到 [infra/n8n/workflows/](infra/n8n/workflows/) 提交入库。
 
-### WF1 — 手机录音 → 转写
+### WF1 — 手机录音 → 转写（全部走本地 faster-whisper）
 节点链：
 1. **Telegram Trigger**（事件：`message`，含 voice/audio）
 2. **Telegram → Get File**（下载到 binary）
 3. **Write Binary File**：`/vault/inbox/audio/{{ $now.format('yyyyMMdd-HHmmss') }}-{{$json.message.message_id}}.ogg`
-4. **IF**：判断 `message.voice.duration > 300`（>5 分钟走本地）
-   - true → **HTTP Request** `POST http://host.docker.internal:9000/transcribe` body `{"path":"/vault/inbox/audio/<上一步文件名>","language":"zh"}`
-   - false → **OpenAI** node → Audio → Transcribe（model `whisper-1`）
+4. **HTTP Request** → `POST http://host.docker.internal:9000/transcribe`
+   - Body (JSON)：`{"path":"/vault/inbox/audio/<上一步文件名>","language":"zh"}`
+   - 不再判断时长，长短音频统一本地处理；本地服务首次启动会自动下载 `large-v3` 模型（~3GB）。
 5. **Set**：拼接 markdown：
    ```
    ---
@@ -153,14 +179,15 @@ docker compose logs -f n8n   # 看到 "Editor is now accessible" 即可 Ctrl+C
 
 ### WF4 — 每天 22:00 自动 /maintain
 1. **Schedule Trigger**（Cron `0 22 * * *`）
-2. **Execute Command**（n8n 自带，需开启 `N8N_RUNNERS_ENABLED`）：
-   ```
-   cmd: powershell -NoProfile -Command "cd D:\VScode\机器人; claude --print --command '/maintain'"
-   ```
-   > 也可以用 SSH 节点连本机；或写一个 batch 脚本。
-3. **IF** 失败 → Telegram 通知用户。
-
-> Claude Code CLI 的 `--print --command` 形式具体参数以你安装版本为准（用 `claude --help` 查），如果不支持，把命令改成 `claude` 进入交互再 echo 注入，或写个包装脚本。
+2. **Execute Command**（需在 docker-compose 中设 `N8N_RUNNERS_ENABLED=true`、并为 n8n 容器提供 PowerShell 访问）。实践中更推荐：**不从容器里跳出去**，改用宿主机任务调度：
+   - **方案 A（推荐）**：用 Windows 任务计划程序直接跳过 n8n：
+     ```powershell
+     # 一次性创建任务（管理员 PowerShell）
+     $cmd = 'cd D:\VScode\机器人; claude --dangerously-skip-permissions -p "/maintain" >> D:\VScode\机器人\.claude\maintain.log 2>&1'
+     schtasks /Create /SC DAILY /ST 22:00 /TN "brain-vault-maintain" /TR "powershell -NoProfile -Command ""$cmd""" /F
+     ```
+   - **方案 B**：仍由 n8n Schedule 起始 → webhook 回调宿主机上一个小服务起 `claude -p "/maintain"`。
+3. （可选）**失败 Telegram 通知**。
 
 ### ✅ 验证
 - Telegram 发 30 秒语音 → 2 分钟内出现 [inbox/transcripts/](inbox/transcripts/) 新文件。
@@ -233,6 +260,8 @@ curl -X POST http://localhost:9000/transcribe `
 | n8n 写文件提示权限 | Docker Desktop → Settings → Resources → File sharing 勾选 `D:\VScode\机器人` |
 | `host.docker.internal` 不通 | 已在 compose 中加 `extra_hosts`；若仍不行用宿主机局域网 IP |
 | Whisper 报 CUDA 错 | 设 `WHISPER_DEVICE=cpu`，或装 CUDA 12 + cuDNN 9 |
+| Claude Code 提示 401/403 | `ANTHROPIC_AUTH_TOKEN` 未生效；关闭重开 PowerShell、`echo $env:ANTHROPIC_AUTH_TOKEN` 验证 |
+| Claude Code 提示 `model not found` | 报错里的模型名不在智谱套餐内，调 `ANTHROPIC_MODEL`/`ANTHROPIC_SMALL_FAST_MODEL` 为套餐允许名（如 `glm-4.6` / `glm-4.5-air`） |
 | Claude Code 命令找不到 4 个 slash | 检查工作目录是否 = Vault 根；`.claude/commands/*.md` 是否有 `description` frontmatter |
 | Obsidian Git push 失败 | 在终端 `cd D:\VScode\机器人; git push` 看具体错误，多半是 SSH key 未配 |
 | 转写中文识别成繁体 | WF1 OpenAI 节点 prompt 加 "请使用简体中文输出"；本地 server 已传 `language=zh` |
