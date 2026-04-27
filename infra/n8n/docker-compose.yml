@@ -1,0 +1,39 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      # —— 基础认证（首次启动后请改强密码）——
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-changeme_now}
+
+      # —— 时区 ——
+      - GENERIC_TIMEZONE=Asia/Shanghai
+      - TZ=Asia/Shanghai
+
+      # —— Webhook URL（本地用 Telegram polling 模式可不配；如需公网 webhook 改为隧道域名）——
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:5678/}
+
+      # —— 任务执行 ——
+      - EXECUTIONS_MODE=regular
+      - N8N_DEFAULT_BINARY_DATA_MODE=filesystem
+
+      # —— 安全 ——
+      - N8N_SECURE_COOKIE=false
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=true
+    volumes:
+      # n8n 自身数据（工作流、凭证）
+      - ./data:/home/node/.n8n
+      # 关键：把 Vault 挂进容器，n8n 节点可直接读写
+      - ../../:/vault
+    extra_hosts:
+      # 允许容器内访问宿主机的 faster-whisper 服务（Windows Docker Desktop 已默认提供）
+      - "host.docker.internal:host-gateway"

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schemas.anthropic.com/claude-code/settings.json",
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Write(./inbox/**)",
+      "Write(./knowledge/**)",
+      "Write(./projects/**)",
+      "Write(./output/**)",
+      "Edit(./inbox/**)",
+      "Edit(./knowledge/**)",
+      "Edit(./projects/**)",
+      "Edit(./output/**)",
+      "Bash(mv:./inbox/**)"
+    ],
+    "deny": [
+      "Write(./articles/**)",
+      "Edit(./articles/**)",
+      "Write(./fleeting-notes/**)",
+      "Edit(./fleeting-notes/**)",
+      "Write(./.claude/**)",
+      "Write(./.obsidian/**)",
+      "Write(./.git/**)"
+    ]
+  }
+}
