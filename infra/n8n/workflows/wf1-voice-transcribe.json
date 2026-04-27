@@ -1,143 +1,33 @@
 {
-  "name": "WF1 - Voice Transcribe",
+  "name": "WF1 - Voice Transcribe (Polling)",
   "nodes": [
     {
       "parameters": {
-        "updates": ["message"],
-        "additionalFields": { "download": true }
-      },
-      "id": "tg-trigger",
-      "name": "Telegram Trigger",
-      "type": "n8n-nodes-base.telegramTrigger",
-      "typeVersion": 1.1,
-      "position": [240, 300],
-      "webhookId": "wf1-tg-voice"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
-          "conditions": [
-            {
-              "id": "voice-exists",
-              "leftValue": "={{ $json.message.voice }}",
-              "rightValue": "",
-              "operator": { "type": "object", "operation": "exists", "singleValue": true }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "if-voice",
-      "name": "Has Voice?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [460, 300]
-    },
-    {
-      "parameters": {
-        "operation": "write",
-        "fileName": "=/vault/inbox/audio/{{ $now.format('yyyyMMdd-HHmmss') }}-{{ $('Telegram Trigger').item.json.message.message_id }}.ogg",
-        "dataPropertyName": "data",
-        "options": {}
-      },
-      "id": "write-audio",
-      "name": "Write Audio",
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [700, 220]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://host.docker.internal:9000/transcribe",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"path\": \"{{ $('Write Audio').item.json.fileName }}\",\n  \"language\": \"zh\"\n}",
-        "options": { "timeout": 600000 }
-      },
-      "id": "http-whisper",
-      "name": "Local Whisper",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [940, 220]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "md",
-              "name": "markdown",
-              "value": "=---\ncreated: {{ $now.toISO() }}\ntype: transcript\nsource: telegram\nduration: {{ $('Telegram Trigger').item.json.message.voice.duration }}\n---\n\n# {{ $now.format('yyyy-MM-dd HH:mm') }} 录音\n\n{{ $json.text }}\n",
-              "type": "string"
-            },
-            {
-              "id": "fname",
-              "name": "fileName",
-              "value": "=/vault/inbox/transcripts/{{ $now.format('yyyyMMdd-HHmm') }}-{{ $('Telegram Trigger').item.json.message.message_id }}.md",
-              "type": "string"
-            }
+        "rule": {
+          "interval": [
+            { "field": "seconds", "secondsInterval": 30 }
           ]
-        },
-        "options": {}
-      },
-      "id": "build-md",
-      "name": "Build Markdown",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [1180, 220]
-    },
-    {
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "markdown",
-        "options": {
-          "fileName": "transcript.md",
-          "mimeType": "text/markdown"
         }
       },
-      "id": "to-binary",
-      "name": "Markdown To Binary",
-      "type": "n8n-nodes-base.convertToFile",
-      "typeVersion": 1.1,
-      "position": [1380, 220]
-    },
-    {
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Build Markdown').item.json.fileName }}",
-        "dataPropertyName": "data",
-        "options": {}
-      },
-      "id": "write-md",
-      "name": "Write Markdown",
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [1580, 220]
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "=✅ 已转写并入库：{{ $('Build Markdown').item.json.fileName.split('/').pop() }}",
-        "additionalFields": {}
-      },
-      "id": "tg-ack",
-      "name": "Telegram Ack",
-      "type": "n8n-nodes-base.telegram",
+      "id": "tick",
+      "name": "Every 30s",
+      "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [1800, 220]
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\nconst axios = require('axios');\nconst TG = $env.TG_TOKEN;\nif (!TG) return [{ json: { error: 'TG_TOKEN not set' } }];\nconst WHISPER = 'http://host.docker.internal:9000/transcribe';\nconst OFFSET_FILE = '/vault/.cache/tg_offset.txt';\nfs.mkdirSync('/vault/.cache', { recursive: true });\nfs.mkdirSync('/vault/inbox/audio', { recursive: true });\nfs.mkdirSync('/vault/inbox/transcripts', { recursive: true });\nlet offset = 0;\ntry { offset = parseInt(fs.readFileSync(OFFSET_FILE, 'utf8'), 10) || 0; } catch (_) {}\nconst pad = (n) => String(n).padStart(2, '0');\nconst fmtTs = (d) => d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());\nconst api = 'https://api.telegram.org/bot' + TG;\nconst updRes = (await axios.get(api + '/getUpdates', { params: { offset: offset, timeout: 0, allowed_updates: JSON.stringify(['message']) }, timeout: 15000 })).data;\nif (!updRes.ok) return [{ json: { error: 'getUpdates failed', detail: updRes } }];\nconst out = [];\nlet maxId = offset - 1;\nfor (const u of updRes.result) {\n  if (u.update_id > maxId) maxId = u.update_id;\n  const m = u.message;\n  if (!m) continue;\n  const voice = m.voice || m.audio;\n  if (!voice) { out.push({ skipped: true, message_id: m.message_id, text: m.text }); continue; }\n  const f = (await axios.get(api + '/getFile', { params: { file_id: voice.file_id }, timeout: 15000 })).data;\n  if (!f.ok) { out.push({ error: 'getFile failed', detail: f }); continue; }\n  const tgPath = f.result.file_path;\n  const dl = await axios.get('https://api.telegram.org/file/bot' + TG + '/' + tgPath, { responseType: 'arraybuffer', timeout: 60000 });\n  const buf = Buffer.from(dl.data);\n  const ext = (tgPath.split('.').pop() || 'ogg').toLowerCase();\n  const ts = new Date(m.date * 1000);\n  const audioPath = '/vault/inbox/audio/' + fmtTs(ts) + '-' + m.message_id + '.' + ext;\n  fs.writeFileSync(audioPath, buf);\n  let text = '';\n  let wErr = null;\n  try {\n    const wRes = await axios.post(WHISPER, { path: audioPath, language: 'zh' }, { timeout: 600000 });\n    text = (wRes.data && wRes.data.text) ? String(wRes.data.text).trim() : '';\n  } catch (e) { wErr = (e.response && e.response.data) ? e.response.data : String(e); }\n  const mdPath = '/vault/inbox/transcripts/' + fmtTs(ts) + '-' + m.message_id + '.md';\n  const isoTs = ts.toISOString();\n  const md = '---\\ncreated: ' + isoTs + '\\ntype: transcript\\nsource: telegram\\nmessage_id: ' + m.message_id + '\\nduration: ' + (voice.duration || 0) + '\\naudio: ' + audioPath + '\\n---\\n\\n# ' + isoTs.slice(0,16).replace('T',' ') + '\\n\\n' + text + '\\n';\n  fs.writeFileSync(mdPath, md, 'utf8');\n  const fname = path.basename(mdPath);\n  const preview = text.length > 300 ? text.slice(0, 300) + '...' : text;\n  const reply = wErr ? ('[ERR] whisper failed: ' + JSON.stringify(wErr).slice(0, 500)) : ('[OK] saved ' + fname + '\\n\\n' + preview);\n  try { await axios.post(api + '/sendMessage', { chat_id: m.chat.id, text: reply, reply_to_message_id: m.message_id }, { timeout: 15000 }); } catch (_) {}\n  out.push({ ok: !wErr, audio: audioPath, md: mdPath, chars: text.length, wErr });\n}\nif (maxId >= offset) fs.writeFileSync(OFFSET_FILE, String(maxId + 1), 'utf8');\nreturn [{ json: { processed: out.length, offset_to: maxId + 1, items: out } }];"
+      },
+      "id": "poll",
+      "name": "Poll And Transcribe",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
     }
   ],
   "connections": {
-    "Telegram Trigger": { "main": [[{ "node": "Has Voice?", "type": "main", "index": 0 }]] },
-    "Has Voice?": { "main": [[{ "node": "Write Audio", "type": "main", "index": 0 }], []] },
-    "Write Audio": { "main": [[{ "node": "Local Whisper", "type": "main", "index": 0 }]] },
-    "Local Whisper": { "main": [[{ "node": "Build Markdown", "type": "main", "index": 0 }]] },
-    "Build Markdown": { "main": [[{ "node": "Markdown To Binary", "type": "main", "index": 0 }]] },
-    "Markdown To Binary": { "main": [[{ "node": "Write Markdown", "type": "main", "index": 0 }]] },
-    "Write Markdown": { "main": [[{ "node": "Telegram Ack", "type": "main", "index": 0 }]] }
+    "Every 30s": { "main": [[{ "node": "Poll And Transcribe", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" }
 }

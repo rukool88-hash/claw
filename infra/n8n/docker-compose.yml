@@ -27,12 +27,15 @@ services:
 
       # —— 安全 ——
       - N8N_SECURE_COOKIE=false
-      - N8N_RUNNERS_ENABLED=true
-      - N8N_BLOCK_ENV_ACCESS_IN_NODE=true
+      - N8N_RUNNERS_ENABLED=false
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
 
       # —— Code 节点放行内置模块（用于直接写文件到 /vault）——
       - NODE_FUNCTION_ALLOW_BUILTIN=fs,path
       - NODE_FUNCTION_ALLOW_EXTERNAL=*
+
+      # —— 业务密钥（从 .env 注入，已 gitignore）——
+      - TG_TOKEN=${TG_TOKEN}
     volumes:
       # n8n 自身数据（工作流、凭证）
       - ./data:/home/node/.n8n
