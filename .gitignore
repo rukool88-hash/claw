@@ -25,6 +25,19 @@ node_modules/
 # Claude Code 本地状态
 .claude/cache/
 .claude/sessions/
+.claude/maintain.log
+
+# Qwen Code 本地状态
+.qwen/cache/
+.qwen/sessions/
+.qwen/maintain.log
+.qwen/*.orig
+
+# n8n 运行数据（含 sqlite、加密凭证）和环境变量文件
+infra/n8n/data/
+infra/n8n/.env
+**/.env
+!**/.env.example
 
 # 临时图片
 *.png
