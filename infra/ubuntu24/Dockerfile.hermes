@@ -1,0 +1,24 @@
+# Build ubuntu24-dev:hermes-v2 — preserves Hermes install + auto-starts gateway on container start.
+#
+# Build (run from repo root, AFTER user has reinstalled Hermes inside the running ubuntu24 container):
+#
+#   docker commit ubuntu24 ubuntu24-dev:hermes-snapshot
+#   docker build -t ubuntu24-dev:hermes-v2 -f infra/ubuntu24/Dockerfile.hermes infra/ubuntu24
+#   docker stop ubuntu24
+#   docker rm ubuntu24
+#   docker run -d --name ubuntu24 --restart unless-stopped \
+#     -p 2222:22 -p 8644:8644 -p 8010:8000 \
+#     -v "D:/VScode/机器人:/workspace" \
+#     --add-host=host.docker.internal:host-gateway \
+#     ubuntu24-dev:hermes-v2
+
+FROM ubuntu24-dev:hermes-snapshot
+
+# Copy the wrapper that starts hermes gateway in background then exec sshd as PID 1
+COPY start-hermes-stack.sh /usr/local/bin/start-hermes-stack.sh
+RUN sed -i 's/\r$//' /usr/local/bin/start-hermes-stack.sh \
+ && chmod +x /usr/local/bin/start-hermes-stack.sh
+
+EXPOSE 22 8644 8000
+
+CMD ["/usr/local/bin/start-hermes-stack.sh"]
