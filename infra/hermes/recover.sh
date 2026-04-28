@@ -1,10 +1,15 @@
 #!/bin/bash
 # Recover-Hermes — re-apply Vault PKM config to a fresh Hermes install in ubuntu24.
 #
-# Run this AFTER:
+# RUN THIS FROM THE HOST (Linux/macOS/WSL/Git-Bash). It uses `docker exec` to
+# reach into the container — DO NOT run it from inside the container.
+# On Windows PowerShell, use `recover.ps1` instead.
+#
+# Prerequisites:
 #   1. ubuntu24 container is running (image: ubuntu24-dev:latest or hermes-v2)
 #   2. Hermes Agent is installed inside (binary at /usr/local/bin/hermes)
-#   3. User has run `hermes setup` to pair Telegram + QQBot
+#   3. GLM_API_KEY + TELEGRAM_BOT_TOKEN already written to /root/.hermes/.env
+#      (see README "首次或灾难恢复" 流程)
 #
 # Idempotent — safe to run multiple times.
 
@@ -12,7 +17,7 @@ set -e
 
 CONTAINER=${HERMES_CONTAINER:-ubuntu24}
 
-if ! docker exec "$CONTAINER" which hermes >/dev/null 2>&1; then
+if ! docker exec "$CONTAINER" bash -lc 'command -v hermes' >/dev/null 2>&1; then
   echo "✗ hermes binary not found in container '$CONTAINER'."
   echo "  Install Hermes first, then re-run this script."
   exit 1
