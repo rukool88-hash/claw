@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Crypto Radar - Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; padding: 30px; margin: 0; }
+        .container { max-width: 1200px; margin: auto; }
+        .layout-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+        @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } }
+        .card { background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #334155; height: fit-content; }
+        a { color: #38bdf8; text-decoration: none; font-weight: 600; line-height: 1.4; font-size: 1.1em; }
+        a:hover { color: #7dd3fc; text-decoration: underline; }
+        h1 { color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 15px; font-size: 2em; }
+        h2 { color: #cbd5e1; margin-top: 0; font-size: 1.3em; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 15px; }
+        .db-badge { background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.6em; font-weight: normal; }
+        .item { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #334155; }
+        .item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .meta { font-size: 0.85em; color: #64748b; margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+        .source-tag { background: #475569; color: #f8fafc; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; }
+        .source-tag.Odaily星球日报 { background: #2563eb; }
+        .source-tag.Google中文资讯 { background: #ea4335; }
+        .source-tag.CoinDesk { background: #047857; }
+        .source-tag.Cointelegraph { background: #b45309; }
+        .source-tag.Bitcoin-com { background: #d97706; }
+        .desc { font-size: 0.95em; color: #94a3b8; margin-top: 8px; line-height: 1.5; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .coin-box { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .coin-name { font-weight: 600; font-size: 1.1em; color: #f1f5f9; }
+        .coin-symbol { color: #64748b; font-size: 0.9em; }
+        .rank-badge { background: #334155; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; color: #38bdf8; }
+        .twitter-container { height: 800px; overflow-y: auto; background: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid #334155; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 币圈全景雷达 (Crypto Radar)</h1>
+        <p style="color: #94a3b8;">海内外双语源聚合、数据库永久归档、X(推特)大V实时监控 | 最后更新: 2026-04-28 13:01:01</p>
+
+        <div class="card">
+            <h2>🔥 资金热捧项目 (CoinGecko Top Trending)</h2>
+            <div class="grid">
+
+                <div class="coin-box">
+                    <div>
+                        <div class="coin-name">Terra Luna Classic</div>
+                        <div class="coin-symbol">LUNC</div>
+                    </div>
+                    <div class="rank-badge">Rank #122</div>
+                </div>
+    
+                <div class="coin-box">
+                    <div>
+                        <div class="coin-name">RaveDAO</div>
+                        <div class="coin-symbol">RAVE</div>
+                    </div>
+                    <div class="rank-badge">Rank #170</div>
+                </div>
+    
+                <div class="coin-box">
+                    <div>
+                        <div class="coin-name">Pi Network</div>
+                        <div class="coin-symbol">PI</div>
+                    </div>
+                    <div class="rank-badge">Rank #46</div>
+                </div>
+    
+                <div class="coin-box">
+                    <div>
+                        <div class="coin-name">USD.AI</div>
+                        <div class="coin-symbol">CHIP</div>
+                    </div>
+                    <div class="rank-badge">Rank #221</div>
+                </div>
+    
+                <div class="coin-box">
+                    <div>
+                        <div class="coin-name">Monad</div>
+                        <div class="coin-symbol">MON</div>
+                    </div>
+                    <div class="rank-badge">Rank #128</div>
+                </div>
+    
+                <div class="coin-box">
+                    <div>
+                        <div class="coin-name">Pudgy Penguins</div>
+                        <div class="coin-symbol">PENGU</div>
+                    </div>
+                    <div class="rank-badge">Rank #89</div>
+                </div>
+    
+                <div class="coin-box">
+                    <div>
+                        <div class="coin-name">Hyperliquid</div>
+                        <div class="coin-symbol">HYPE</div>
+                    </div>
+                    <div class="rank-badge">Rank #13</div>
+                </div>
+    
+                <div class="coin-box">
+                    <div>
+                        <div class="coin-name">Bitcoin</div>
+                        <div class="coin-symbol">BTC</div>
+                    </div>
+                    <div class="rank-badge">Rank #1</div>
+                </div>
+    
+            </div>
+        </div>
+        
+        <div class="layout-grid">
+            <!-- 左侧：全球+国内新闻流 -->
+            <div class="card">
+                <h2>
+                    <span>📰 24H 实时前沿动态 (海内外)</span>
+                    <span class="db-badge">SQLite 已归档</span>
+                </h2>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMipgFBVV95cUxPU3Z6bkljRHcwSWhtUEo0UlhiWnBzNlBQQ3hGN092UGRWSmZ0Zy11TXJIa0d6ODQzX2c1SHJvR2NZX0VBd0ZlcS1mVDg3eERLMGJLMzdneWRETk1tc29iTzFTT1JXckFEWUFFb25xdVl4YWhoMUNiNnNsSzNQbm9VanNYeHlFd2MxSkJOOXhPdTV4dDRHSmJtYThTQXFrYVhXX3N5ejlB?oc=5" target="_blank">▪ 比特币因美联储不确定性、石油和人工智能放缓承压 - Moomoo</a>
+                    <div class="desc">比特币因美联储不确定性、石油和人工智能放缓承压&nbsp;&nbsp;Moomoo</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 04:47:57 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://www.coindesk.com/markets/2026/04/28/the-uncertainty-of-the-fed-oil-and-a-possible-ai-slowdown-are-all-weighing-heavy-on-btc" target="_blank">▪ 比特币受到美联储不确定性、石油和人工智能放缓的压力</a>
+                    <div class="desc">Enflux指出，石油驱动的通胀是主要制约因素，而围绕人工智能需求的问题可能会重塑未来几个月矿商的抛售。</div>
+                    <div class="meta">
+                        <span class="source-tag CoinDesk">CoinDesk</span>
+                        <span>Tue, 28 Apr 2026 04:42:11 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMimgFBVV95cUxQMWxCN2xmSXpLX3N5dlFSc2dONHpvU0NlMzJOeVlKZnhYTGd1T0J2UHpUV0QwTUY2UVQzSlRHbVE1dlVQb2h0MFNrUEdDUFc3cG1MNU5tM1R1MGhGdS1wVlBXZzdkMVlXUU9yS2VHemw4NlByN3VOMUJDS3BhZ09fVTFuRjBBa0EyVGN2U2hlQ0JtWE5WdHNiMjRR?oc=5" target="_blank">▪ 比特币因美联储不确定性、石油和人工智能放缓承压 - 富途牛牛</a>
+                    <div class="desc">比特币因美联储不确定性、石油和人工智能放缓承压&nbsp;&nbsp;富途牛牛</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 04:42:11 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://cointelegraph.com/news/mara-forms-foundation-to-harden-bitcoin-against-quantum-other-threats?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">▪ MARA 成立基金会支持比特币网络健康和采用</a>
+                    <div class="desc">作为其启动的一部分，MARA 基金会要求社区投票决定三个比特币公司中的哪一家应该获得 10 万美元的捐款。</div>
+                    <div class="meta">
+                        <span class="source-tag Cointelegraph">Cointelegraph</span>
+                        <span>Tue, 28 Apr 2026 04:36:26 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://cointelegraph.com/markets/bitcoin-support-resistance-flip-in-play-as-longs-to-shorts-delta-highlights-bullish-bias?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">▪ 多头转空头 Delta 凸显看涨偏见，比特币支撑阻力位翻转</a>
+                    <div class="desc">比特币回调，重新测试 76,500 美元的支撑位，但多空 Delta 表明，如果收复区间高点，多头将拥有显着优势。</div>
+                    <div class="meta">
+                        <span class="source-tag Cointelegraph">Cointelegraph</span>
+                        <span>Tue, 28 Apr 2026 03:48:14 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.bitcoin.com/saipan-woman-gets-71-months-for-769k-bitcoin-wire-fraud-scheme/" target="_blank">▪ 塞班岛女子因比特币电汇诈骗案被判 71 个月监禁 价值 76.9 万美元</a>
+                    <div class="desc">比特币欺诈指控导致 Sze Man Yu Inos 被判入联邦监狱。该案凸显了个人信任和虚假投资承诺如何使老年受害者遭受重大损失。要点：在检察官描述虚假的比特币投资主张后，伊诺斯被判入狱。塞班岛受害者...</div>
+                    <div class="meta">
+                        <span class="source-tag Bitcoin-com">Bitcoin.com</span>
+                        <span>Tue, 28 Apr 2026 03:30:25 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMiowFBVV95cUxNQnBuSWZjS1I2OWhBdmZraDREd19XQjdpYXF2X2dnbFVDWXVRSjM3dkotWlo1MFhvREM1ZVN5eWJUVS1UalZrbGg0aFlsa3JmdkhvcHB3d29MVnVpOTVsZ2dOaGVpNElzRFUtZnhxOEJIZ1RSS0dMSHdlc0JSTGJvWjAzWlJEU0RLY2NPVU9Ob2xPY3M4OVNCSmhLa1lfQXc1Vnpz?oc=5" target="_blank">▪ 比特币矿工向交易所充值笔数锐减至 8138 笔，相比去年底超 10 万笔大幅下降 - 吴说</a>
+                    <div class="desc">比特币矿工向交易所充值笔数锐减至 8138 笔，相比去年底超 10 万笔大幅下降&nbsp;&nbsp;吴说</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 03:16:00 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMiVkFVX3lxTFBpeFhNQ2tfdVFIWnVHeXRaVGQzSEhWc1VZZndPQWJkajJkS1Jvd09scEcwMGJtc3BMNldqUE5iZGQybGhyV1AxbDlKZ3ZtQkRMTHEtelVn?oc=5" target="_blank">▪ SEC、CFTC与白宫“三方共振”，比特币能否在《CLARITY Act》窗口期突破8万美元？ - Tiger Brokers</a>
+                    <div class="desc">SEC、CFTC与白宫“三方共振”，比特币能否在《CLARITY Act》窗口期突破8万美元？&nbsp;&nbsp;Tiger Brokers</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 03:15:18 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMihwFBVV95cUxQMVdGYXIwb2FTZzlVMFZjdTFkV2lIVklRcmliVzlKQ2dGMjZTZDM3OUsyc1ZkamFheGFCTVhPa0ZMNGVsZ2dXTXJRQnZIYlhlU1VVRThXc29UTWtyOEJSVm1IRGluNVUxNTdqdjh4dmNvTlNjaHh5U3pGMUZHRlhlWmdnQll4WTg?oc=5" target="_blank">▪ 比特币 L2 网络 Stacks 发布 2026 年 Q1 生态报告 - 吴说</a>
+                    <div class="desc">比特币 L2 网络 Stacks 发布 2026 年 Q1 生态报告&nbsp;&nbsp;吴说</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 02:51:12 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMi3gJBVV95cUxOanJDVm0tZ1Ayb3dNWW1CSkNTSWR0ZmFneEJxVHRhSk5tMTZWRGtGbkRUbTlpajM2c1l3c1JNME01bVVkbVJ0ZFppYW5zWTBVRjYxazYtYjdqY25yQjE3R0E3NkF1VHNhY2gxSGhUVWpybkc4QjZtM1M4ZlV5blpib09wZFlzRHpzOU1BOWhhZDFoaDNud1kyUjZtY0p3eVQ1TUlXS1N1VWNpaFpqY2dWQjNJRnRUSTNrZkN0VTUtaGxRcGFJOVNpOHNsOWJwa1FjVFMwYzhmdWJtRjc4cjBScWJGM0RoSm1sVTFxQ0xBb3J5Y2Z0THdtSm5Ud2htX1l0TVBxSXQ3eFl1enZxc2JGeHdnVlh6UE93RVBOX0g0RHRFS0J3WWdZY2pDQXZxZjk2UHpLQ0F6TmQ0ckJDWmRhSzZ4SkxraXJIT0IxN1Z0b2k4dl85YjAxQzFSNnUtQQ?oc=5" target="_blank">▪ 比特币一度逼近8万美元关口创12周新高 美伊对峙与机构买盘共舞 - 新浪财经</a>
+                    <div class="desc">比特币一度逼近8万美元关口创12周新高 美伊对峙与机构买盘共舞&nbsp;&nbsp;新浪财经</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 02:32:42 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.bitcoin.com/chainalysis-maps-iran-stablecoin-pipeline-behind-344m-usdt-freeze/" target="_blank">▪ Chainaanalysis 绘制了 3.44 亿美元 USDT 冻结背后的伊朗稳定币管道</a>
+                    <div class="desc">3.44 亿美元的 USDT 冻结暴露了与伊朗相关的资金是如何通过稳定币网络传输的。 Chainaanalysis 分析了与伊朗中央银行相关地址相关的经纪商、中介钱包和 DeFi 协议的活动。关键要点：3.44 亿美元的 USDT 冻结暴露了多步加密......</div>
+                    <div class="meta">
+                        <span class="source-tag Bitcoin-com">Bitcoin.com</span>
+                        <span>Tue, 28 Apr 2026 02:30:19 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMif0FVX3lxTE1CRzIxbjItUXJXVHpYTGhhcmtkMWJtQ3gzUi1ZbzVnTC1LaEJReXVpVGtBaVh2UGRxdmswQmN2aTllUi1wNFdsc2pCWFg1WFBlQlBNbGVqRzdHT2pDdHM5TTR6N2g3a0JxWEJEMmpJdmh2aFZpbHg5ZEVHRnhldHM?oc=5" target="_blank">▪ Arthur Hayes：比特币年末目标价 12.5 万美元 - PANews</a>
+                    <div class="desc">Arthur Hayes：比特币年末目标价 12.5 万美元&nbsp;&nbsp;PANews</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 02:22:00 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMif0FVX3lxTFBRVTJWTUdPam44a1I5Yk5YSjBjRGVRRDNseWRFWDZLMGRUX281MUNVM1FLOXBFTkJQQjMtZHY3Z0ZrTlc0ckhYcUVRTUhwcGVjTm9NMm9vTzVvSThrTjhPRm1WMnpvM25yZUJQT1F5LS1BT3c3M0dmOWlvZTMxS0U?oc=5" target="_blank">▪ 最Crypto的那批人，正在变得最不Crypto - PANews</a>
+                    <div class="desc">最Crypto的那批人，正在变得最不Crypto&nbsp;&nbsp;PANews</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 02:22:00 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMivgFBVV95cUxQRmtPNmtMMURXMUZiY283NHBjelY3UEQ2MnJfdjVQOHg5TkZjM0RaXzEwdmVUZ1FpeWx2MDh0UEJBRF91Rko3Zl9OaG1SdXd1XzlENU8xR0ZFSWFBODQ2QXFnNmx4elFJcTlxejVUMHlpWnBJb085Q1hoOWFOSVVDY0ljWEdQaGVfVVRUUXJPdmcxZFNsVEY2bi0tTi1ZWlRTQ1RobGFiYk1PdjI1Sm9Ea1hyZWkxUXlRSDlkM1pB?oc=5" target="_blank">▪ Arthur Hayes 预测比特币年底将达 12.5 万美元：战争开支与银行放宽监管将注入海量流动性 - 吴说</a>
+                    <div class="desc">Arthur Hayes 预测比特币年底将达 12.5 万美元：战争开支与银行放宽监管将注入海量流动性&nbsp;&nbsp;吴说</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 02:09:00 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.bitcoin.com/tron-dao-joins-the-programmable-economy-ai-and-blockchain-redefining-markets-conference-at-cornell-tech/" target="_blank">▪ TRON DAO 加入康奈尔科技大学可编程经济：人工智能和区块链重新定义市场会议</a>
+                    <div class="desc">本赞助新闻稿由 TRON DAO 提供，并非由 Bitcoin.com News 撰写。 Bitcoin.com News 不一定认可本公告中的声明。新闻稿。瑞士日内瓦，2026 年 4 月 27 日 — TRON DAO，一个社区治理的 DAO，致力于加速……</div>
+                    <div class="meta">
+                        <span class="source-tag Bitcoin-com">Bitcoin.com</span>
+                        <span>Tue, 28 Apr 2026 02:00:47 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.bitcoin.com/sec-reviews-85-proposal-that-could-impact-bitcoin-and-xrp-etf-listings/" target="_blank">▪ SEC 审查 85% 可能影响比特币和 XRP ETF 上市的提案</a>
+                    <div class="desc">SEC 通知对 NYSE Arca 的 85% 资产规则提案展开评论，收紧了加密货币和商品信托上市要求。要点：SEC 通知寻求对 NYSE Arca 提案发表评论，该提案要求 85% 的资产符合资格标准。 NYSE Arca rule would count derivatives by gross notional val...</div>
+                    <div class="meta">
+                        <span class="source-tag Bitcoin-com">Bitcoin.com</span>
+                        <span>Tue, 28 Apr 2026 01:40:25 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMif0FVX3lxTE5tdmZ0ci1vVzRhTW54N0E2Z1hhT0tlM09xSW9EQndRTEpMZWNpdTN0SUVLeWZhcHZvd29wWEFtM3gtQ25fbUM3QU5BR05NWmRzWU9ONlhhc1c0anE2Z3RmdHVnQUx4QjY0RlF3Z0pneWFZQlJPZlJralFqUEJiUUE?oc=5" target="_blank">▪ Block发布储备证明，验证该公司比特币持仓价值约22亿美元 - PANews</a>
+                    <div class="desc">Block发布储备证明，验证该公司比特币持仓价值约22亿美元&nbsp;&nbsp;PANews</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 01:31:01 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://cointelegraph.com/markets/bitcoin-shorts-create-14b-liquidation-risk-is-a-price-squeeze-to-80k-next?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">▪ 比特币空头造成 $1.4B 清算风险：接下来价格会挤压至 $80K 吗？</a>
+                    <div class="desc">比特币未能突破 79,000 美元，但由于 14 亿美元的空头头寸在 80,000 美元时面临清算，因此形成了潜在的空头陷阱。现货市场需求会成为触发因素吗？</div>
+                    <div class="meta">
+                        <span class="source-tag Cointelegraph">Cointelegraph</span>
+                        <span>Tue, 28 Apr 2026 01:26:36 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMisgFBVV95cUxNMV9tSVFYLVBaRUpjVWZjTm9iaGE1ZUhmSFNUYm9Jd0dsV21KSkRpd0ZpcFFuN1RnZ1JVZHNrZ3JFNTd1dGRpY3AxMS1scW5hMmV1eWw0SklGNmp6aENmZDZIOGIyT3FqcllEdVJIa0NEU1M4X1EyeERuaFRIRnJCUTQ1UEJ3T0xhdC1JNHpObzFCNjZwZ080ZDJXUlkyeHFCcENFalNnYkVCRmtUTDZmWnpn?oc=5" target="_blank">▪ 哥伦比亚最大养老基金 Porvenir 推出加密投资组合，支持通过 IBIT 间接投资比特币 - 吴说</a>
+                    <div class="desc">哥伦比亚最大养老基金 Porvenir 推出加密投资组合，支持通过 IBIT 间接投资比特币&nbsp;&nbsp;吴说</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 01:01:00 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.bitcoin.com/solana-readies-quantum-defense-with-3-step-roadmap-and-falcon-implementation/" target="_blank">▪ Solana 通过三步路线图和 Falcon 实施为量子防御做好准备</a>
+                    <div class="desc">Solana 的两个主要验证器客户端开发人员已独立为该网络确定了相同的后量子加密解决方案，并在 Github 上发布了工作代码，而整个行业的区块链研究人员正在加紧准备应对未来数年的威胁。要点...</div>
+                    <div class="meta">
+                        <span class="source-tag Bitcoin-com">Bitcoin.com</span>
+                        <span>Tue, 28 Apr 2026 00:55:09 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMiowFBVV95cUxNekVzcUtreEI1OFFpTXZ2N0lmcWNCT1phOUZQU21jSFNZRlRNa29yWGItLWxTM01ZZVRWMkRvM2x6VmJacE5EcDNaSmRkaDJCeFhmY20xVThDdmRhaWhXQVBMVTRfVFZQU3lvczBGSlMzX2E1T1dTV0xQVmpXcC1aeEVIMnY3bkUzNlNMNGlZaEplY1MwR3RaQzRhUFFIWnBNSGlv?oc=5" target="_blank">▪ 俄罗斯政府委员会批准财政部提案，拟对加密货币交易征收个人所得税 - 吴说</a>
+                    <div class="desc">俄罗斯政府委员会批准财政部提案，拟对加密货币交易征收个人所得税&nbsp;&nbsp;吴说</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 00:55:00 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.bitcoin.com/senate-democrats-warn-sec-crypto-exemptions-may-undermine-investor-protections/" target="_blank">▪ Senate Democrats Warn SEC Crypto Exemptions May Undermine Investor Protections</a>
+                    <div class="desc">参议院民主党人表示，美国证券交易委员会的加密货币指导可能会缩小主要代币类别的投资者保护范围。沃伦和范霍伦认为，这种方法可能会减少对加密货币公司、共同市场活动和未来筹款途径的监管。 Key Takeaways: Warren and Van Hollen challenge...</div>
+                    <div class="meta">
+                        <span class="source-tag Bitcoin-com">Bitcoin.com</span>
+                        <span>Tue, 28 Apr 2026 00:18:24 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMifkFVX3lxTE9wRHRHLTBCd2kzMnUwWnA0Nm1JaDRFMDJzMkQ5M2dhSEY2bEFJd2d6NzhJaDYtSE1oc09NTnpHVllyX1lUZ0FnbG1iYlZmenNKVHp0aWVJR3ExemtJd0ZEZUFwakllb05NSGlvM0dYRVVsbFlFRkpONlBmUkJ3UQ?oc=5" target="_blank">▪ $比特币 (BTC.CC)$ - Moomoo</a>
+                    <div class="desc">$比特币 (BTC.CC)$&nbsp;&nbsp;Moomoo</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Tue, 28 Apr 2026 00:02:00 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.bitcoin.com/arthur-hayes-calls-125k-bitcoin-by-year-end-as-war-spending-floods-markets-with-cash/" target="_blank">▪ 随着战争支出现金涌入市场，Arthur Hayes 预计比特币年底将达到 12.5 万美元</a>
+                    <div class="desc">BitMEX 联合创始人、现任加密家族办公室 Maelstrom 首席信息官的 Arthur Hayes 向比特币拉斯维加斯与会者表示，随着战时国防支出和新的美国银行放松管制将新的流动性推向金融市场，他预计比特币到年底将达到 125,000 美元。关键要点：阿瑟·海耶斯 (Arthur Hayes)...</div>
+                    <div class="meta">
+                        <span class="source-tag Bitcoin-com">Bitcoin.com</span>
+                        <span>Mon, 27 Apr 2026 23:51:32 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMiaEFVX3lxTE5VYnQwLW12b2JtNFJETDJHR0gwMXZEMzc5RnlPa01PN2dxVDQ0Q2hRV05JdEpfNWpPeW01WDdmSDNsS2EtSllJR3cwdGFialM0WGdpeXdodE1TRGlWN0Uwc2N6cEZ1S2Jl?oc=5" target="_blank">▪ 白宫顾问暗示即将发布战略比特币储备公告 - Binance</a>
+                    <div class="desc">白宫顾问暗示即将发布战略比特币储备公告&nbsp;&nbsp;Binance</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Mon, 27 Apr 2026 23:48:25 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMilgFBVV95cUxPbjBjd2xiSDZBSkVmOFFCTE1fdk55S3YwZHRzMHBjOGZHMTg4RWlLN0Z5b2xNYmg3RDI3SFRNekNxX1MxYVZFd1A3QkhIZUcwa2NnSVBQaThrX2dmckpuUnlVc2ZvSnUxLTBCcVhnQkNRckVwSGtyLXBnQzNlNjdfbU5DOC1TQ0dkWE1XdkVRRVRKU2hKR2c?oc=5" target="_blank">▪ 以太坊持币地址接近 1.9 亿创历史高位，比特币接近 6000 万 - 吴说</a>
+                    <div class="desc">以太坊持币地址接近 1.9 亿创历史高位，比特币接近 6000 万&nbsp;&nbsp;吴说</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Mon, 27 Apr 2026 23:31:00 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://cointelegraph.com/markets/ether-triple-top-pattern-rejects-24k-as-eth-analyst-questions-uptrend?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">▪ 由于 ETH 分析师怀疑看涨趋势变化，以太三重顶触及 2400 美元</a>
+                    <div class="desc">Ether charts flash an ominous triple-top pattern as ETH fails to overcome $2,400.空头会继续控制山寨币的价格走势吗？</div>
+                    <div class="meta">
+                        <span class="source-tag Cointelegraph">Cointelegraph</span>
+                        <span>Mon, 27 Apr 2026 23:19:40 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.bitcoin.com/sec-chair-paul-atkins-tells-bitcoin-las-vegas-2026-a-new-era-starts-now-at-the-agency/" target="_blank">▪ 美国证券交易委员会 (SEC) 主席保罗·阿特金斯 (Paul Atkins) 在 2026 年拉斯维加斯比特币峰会上表示，该机构的新时代现已开始</a>
+                    <div class="desc">美国证券交易委员会 (SEC) 主席保罗·阿特金斯 (Paul Atkins) 周一在 2026 年拉斯维加斯比特币大会上向与会者表示，该机构正在采取行动，拥抱数字资产创新，结束执法驱动的监管，并与商品期货交易委员会 (CFTC) 合作，以澄清……</div>
+                    <div class="meta">
+                        <span class="source-tag Bitcoin-com">Bitcoin.com</span>
+                        <span>Mon, 27 Apr 2026 23:14:08 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.google.com/rss/articles/CBMirwFBVV95cUxOSkNGSFczemZuRklIU3NvUENXUVRQRERUejVUWnVERmlaRWtERm1PZmlDNk10NmxGcFdhNWR4TmxNLVdBUGl6aW92TmNZWXJncHlyX2lKWFk5S0kxNmVRMXlLTnhWaFJzaEdKNlIwbWZQMmh2aUNBTm1WSWhqX3BuRktmVXN6Rzd1RGZSOXB3OGpvZzgzRFJvMjNFcW9pVW8wVFhCR1VfY0Y0WUhraTFj?oc=5" target="_blank">▪ 硅谷金融科技公司 Aven 推出比特币抵押信用卡，最高额度 100 万美元 - 吴说</a>
+                    <div class="desc">硅谷金融科技公司 Aven 推出比特币抵押信用卡，最高额度 100 万美元&nbsp;&nbsp;吴说</div>
+                    <div class="meta">
+                        <span class="source-tag Google中文资讯">Google中文资讯</span>
+                        <span>Mon, 27 Apr 2026 22:44:52 GMT</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://cointelegraph.com/news/israel-shekel-pegged-stablecoin-bils?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">▪ Israeli regulators approve shekel-pegged stablecoin</a>
+                    <div class="desc">以色列交易所 Bits of Gold 发行的 BILS 稳定币在 Solana 区块链上进行了为期两年的试点计划后获得批准。</div>
+                    <div class="meta">
+                        <span class="source-tag Cointelegraph">Cointelegraph</span>
+                        <span>Mon, 27 Apr 2026 22:40:45 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.bitcoin.com/fidelity-says-bitcoin-has-thin-profit-cushion-as-macro-risks-drive-25-ytd-decline/" target="_blank">▪ 富达表示，宏观风险导致年初至今下跌 25%，比特币利润空间微薄</a>
+                    <div class="desc">Fidelity Digital Assets released its Q2 2026 Signals Report on Monday, showing bitcoin holding a net unrealized profit/loss (NUPL) score of 0.21 while ethereum and solana remain in capitulation territory. Key Takeaways: Fidelity Digital Assets rates bitcoin’s Q1 2026 NUPL score at 0.21, placing BTC ...</div>
+                    <div class="meta">
+                        <span class="source-tag Bitcoin-com">Bitcoin.com</span>
+                        <span>Mon, 27 Apr 2026 22:20:53 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://cointelegraph.com/news/canada-advances-bill-ban-crypto-political-donations?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">▪ Canada advances bill to ban crypto political donations</a>
+                    <div class="desc">尽管加拿大扩大了对稳定币和数字资产市场的监管，但立法者仍希望推动选举改革，阻止加密货币竞选捐款。</div>
+                    <div class="meta">
+                        <span class="source-tag Cointelegraph">Cointelegraph</span>
+                        <span>Mon, 27 Apr 2026 21:50:17 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://cointelegraph.com/markets/bitcoin-whale-holdings-hit-five-month-high-is-btc-headed-to-80k-next?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">▪ 比特币鲸鱼持有量创五个月新高：比特币下一步会涨至 8 万美元吗？</a>
+                    <div class="desc">鲸鱼和机构投资者积累的比特币正在减少比特币的可用供应，并可能为比特币反弹至 80,000 美元以上奠定基础。</div>
+                    <div class="meta">
+                        <span class="source-tag Cointelegraph">Cointelegraph</span>
+                        <span>Mon, 27 Apr 2026 21:44:05 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://www.coindesk.com/tech/2026/04/27/industry-leaders-are-pouring-hundreds-of-millions-into-a-rescue-plan-for-aave-users-after-massive-crypto-hack" target="_blank">▪ 在大规模加密货币黑客攻击后，行业领导者正在投入数亿美元用于 Aave 用户的救援计划</a>
+                    <div class="desc">对 DeFi 复苏基金的反应迅速扩展到 Aave 之外，在某些情况下是从直接外展开始的。</div>
+                    <div class="meta">
+                        <span class="source-tag CoinDesk">CoinDesk</span>
+                        <span>Mon, 27 Apr 2026 21:40:04 +0000</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <a href="https://news.bitcoin.com/aven-bitcoin-card-lets-holders-borrow-up-to-1m-against-btc/" target="_blank">▪ Aven 比特币卡允许持有者以 BTC 借款高达 100 万美元</a>
+                    <div class="desc">Aven 推出比特币 Visa 卡，提供最高 100 万美元的 BTC 信用额度，年利率 7.99% 起，并提供现金返还奖励。要点：Aven 比特币 Visa 卡在不出售比特币的情况下提供高达 100 万美元的 BTC 支持信用额度。 Aven 卡利率起价为 7.99% 年利率，无年费或...</div>
+                    <div class="meta">
+                        <span class="source-tag Bitcoin-com">Bitcoin.com</span>
+                        <span>Mon, 27 Apr 2026 21:18:14 +0000</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 右侧：X (Twitter) KOL 实时信息流 -->
+            <div class="card">
+                <h2>🐦 X (Twitter) 大V 实盘与观点流</h2>
+                <div class="twitter-container">
+                    <a class="twitter-timeline" data-theme="dark" href="https://twitter.com/WuBlockchain?ref_src=twsrc%5Etfw">Tweets by WuBlockchain (吴说区块链)</a>
+                    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+                    <br><hr style="border-color:#334155;"><br>
+                    <a class="twitter-timeline" data-theme="dark" href="https://twitter.com/VitalikButerin?ref_src=twsrc%5Etfw">Tweets by Vitalik Buterin</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
